@@ -205,3 +205,26 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# My Rules
+
+# 1. weights
+*.pt
+*.pth
+*.onnx
+
+# 2. api
+*.env
+api_key.txt
+*api_key*
+
+# 3. documentation
+*.csv
+*.pdf
+*.pages
+*.zip
+
+# 4. screenshots
+*.jpg
+*.png
+*.jpeg
