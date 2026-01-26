@@ -218,13 +218,12 @@ __marimo__/
 api_key.txt
 *api_key*
 
-# 3. documentation
-*.csv
+# 3. documentation (exclude results folder)
 *.pdf
 *.pages
 *.zip
 
-# 4. screenshots
-*.jpg
-*.png
-*.jpeg
+# 4. screenshots (exclude results folder)
+# Note: results/ folder is allowed for training visualizations
+!results/
+!results/**

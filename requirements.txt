@@ -27,9 +27,23 @@ rich>=13.0.0
 # Roboflow (Data Management)
 roboflow>=1.0.0
 
+# Web Demo
+gradio>=4.0.0
+
+# GPU Acceleration (Optional)
+# cupy-cuda11x>=12.0.0      # For CUDA 11.x
+# cupy-cuda12x>=12.0.0      # For CUDA 12.x
+
 # Tracking (Future)
 # lap>=0.4.0                # For ByteTrack
 
 # Jupyter
+ipykernel>=6.0.0
+notebook>=7.0.0
+
+# TensorRT (Optional - for edge deployment)
+# tensorrt>=8.0.0
+# onnx>=1.14.0
+# onnxruntime-gpu>=1.15.0
 ipykernel>=6.0.0
 notebook>=7.0.0
