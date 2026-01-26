@@ -1,0 +1,35 @@
+# ThermalTracking - Python Dependencies
+# =====================================
+
+# Core ML/DL
+ultralytics>=8.0.0          # YOLOv8
+torch>=2.0.0                # PyTorch
+torchvision>=0.15.0         # Vision utilities
+
+# Data Processing
+numpy>=1.24.0
+pandas>=2.0.0
+opencv-python>=4.8.0
+Pillow>=10.0.0
+
+# Visualization
+matplotlib>=3.7.0
+seaborn>=0.12.0
+
+# Configuration
+PyYAML>=6.0
+python-dotenv>=1.0.0
+
+# Progress & Logging
+tqdm>=4.65.0
+rich>=13.0.0
+
+# Roboflow (Data Management)
+roboflow>=1.0.0
+
+# Tracking (Future)
+# lap>=0.4.0                # For ByteTrack
+
+# Jupyter
+ipykernel>=6.0.0
+notebook>=7.0.0

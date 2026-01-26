@@ -1,83 +1,185 @@
-# ThermalTracking: YOLOv8-based Detection and Tracking of Aerial Targets in Thermal Imagery
+# 🔥 ThermalTracking
 
-This project is a prototype for detecting, classifying, and tracking aerial targets (drone, plane, helicopter, bird) in thermal (infrared) video streams using YOLOv8.
+**YOLOv8-based Detection and Tracking of Aerial Targets in Thermal Imagery**
 
-Instead of relying on a clean, pre-made dataset, this project focuses on a Data-Centric AI approach, emphasizing the critical engineering steps of Data Collection, Data Cleaning, and Data Augmentation.
+[![Python](https://img.shields.io/badge/Python-3.10+-blue.svg)](https://www.python.org/)
+[![YOLOv8](https://img.shields.io/badge/YOLOv8-Ultralytics-orange.svg)](https://ultralytics.com/)
+[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![Status](https://img.shields.io/badge/Status-In%20Development-yellow.svg)]()
 
----
+> A computer vision system for detecting and classifying aerial targets (drone, plane, helicopter, bird) in thermal/infrared imagery using deep learning.
 
-## Project Roadmap
-
-This prototype is being developed in three main phases to address the end-to-end engineering problem:
-
-### Phase 1: "Mega-Set" Data Engineering
-No "off-the-shelf" dataset was used. Instead, a custom "Mega-Set" was engineered.
-
-1.  **Data Collection:** Aggregated 11 different, public, and "messy" thermal datasets.
-2.  **Data Cleaning:** Wrote the `clean_label.py` script to automate the cleaning process. This script parses all labels (e.g., 'UAV', 'Drone', 'BIRD', '1', '3') and standardizes them into 4 classes: 'drone', 'plane', 'helicopter', 'bird'.
-3.  **Data Augmentation:** Used Roboflow to apply 3x augmentations (Blur, Noise, Brightness, etc.) to the 24,000+ raw training images, creating a robust training set of over 80,000+ images (`v2-augmented-3x`).
-
-### Phase 2: Model Training (YOLOv8m)
-* **Model:** YOLOv8m (Medium)
-* **Dataset:** `v2-augmented-3x` (80,000+ Images)
-* **Environment:** Google Colab (Tesla T4 GPU)
-* **Checkpointing:** All training outputs (`best.pt`, `last.pt`) are saved directly to Google Drive (`project='/content/drive/...'`) to prevent data loss from Colab runtime disconnections.
-* **Reproducibility:** All training runs use `seed=0` and `deterministic=True` for scientifically reproducible results.
-
-### Phase 3: Tracking & Optimization (Future Work)
-* **[In Progress] Target Tracking:** Integration with the ByteTrack algorithm.
-* **[Planned] Relative Velocity:** Calculating apparent target speed in 'pixels/second'.
-* **[Planned] Optimization:** Exporting the final model to ONNX format for inference on edge/embedded systems.
+![Sample Detection](results/sample_predictions/train_batch0.jpg)
 
 ---
 
-## Training Status
+## 🎯 Project Overview
 
-The `v2_safe_train` training run is currently in progress.
+This project implements a **Data-Centric AI** approach to build a robust aerial target detection system for thermal imagery. Instead of relying on pre-made datasets, we engineered a custom "MegaSet" by aggregating, cleaning, and augmenting 11+ public thermal datasets.
 
-The table below shows the promising results from the first 5 epochs of the initial `v1` training run. We expect to reproduce these exact results in the new `v2` run due to the `seed=0` setting.
+### Key Features
 
-| Epoch | mAP50 | mAP50-95 | cls_loss (Error) |
-| :---: | :---: | :---: | :---: |
-| 1/50 | 0.659 | 0.346 | 1.269 |
-| 2/50 | 0.689 | 0.355 | 0.857 |
-| 3/50 | 0.687 | 0.350 | 0.920 |
-| 4/50 | 0.710 | 0.369 | 0.889 |
-| **5/50** | **0.722** | **0.388** | **0.804** |
-
-Training graphs (`results.png`) will be added here upon completion.
+- 🔍 **4-Class Detection**: Drone, Plane, Helicopter, Bird
+- 📊 **80,000+ Training Images**: Augmented thermal dataset
+- 🎯 **73.9% mAP50**: Current best performance (Epoch 10)
+- 🔄 **Reproducible**: Deterministic training with `seed=0`
+- 📦 **Modular Design**: Clean, extensible codebase
 
 ---
 
-## Tech Stack
+## 📁 Project Structure
 
-* Python 3.10+
-* YOLOv8 (Ultralytics)
-* Roboflow (Data Management & Augmentation)
-* OpenCV (Image Processing)
-* Google Colab (Tesla T4 GPU Training)
-* GitHub (Version Control)
+```
+ThermalTracking/
+├── src/
+│   ├── data_cleaning/      # Dataset preprocessing scripts
+│   │   └── clean_label.py  # Label standardization
+│   ├── inference/          # Detection scripts
+│   │   └── detect.py       # Run inference on images/videos
+│   ├── training/           # Training utilities
+│   └── tracking/           # [Future] Object tracking
+├── notebooks/              # Colab training notebooks
+├── configs/                # Configuration files
+├── results/                # Training results & visualizations
+├── docs/                   # Documentation
+└── assets/                 # Images for README
+```
 
 ---
 
-## Setup and Installation
+## 🚀 Quick Start
 
-1.  Clone this repository:
-    ```bash
-    git clone [https://github.com/mehmetd7mir/ThermalTracking.git](https://github.com/mehmetd7mir/ThermalTracking.git)
-    cd ThermalTracking
-    ```
+### Installation
 
-2.  Create and activate a virtual environment (Recommended):
-    ```bash
-    python3 -m venv .venv
-    source .venv/bin/activate
-    ```
+```bash
+# Clone the repository
+git clone https://github.com/mehmetd7mir/ThermalTracking.git
+cd ThermalTracking
 
-3.  Install the required dependencies:
-    ```bash
-    pip install -r requirements.txt
-    ```
+# Create virtual environment
+python3 -m venv venv
+source venv/bin/activate  # Linux/Mac
+# venv\Scripts\activate   # Windows
 
-4.  To review the training process, see the Colab notebook:
-    * `thermal_tracking_test1.ipynb`
+# Install dependencies
+pip install -r requirements.txt
+```
+
+### Run Inference
+
+```bash
+# On an image
+python src/inference/detect.py --source image.jpg --weights best.pt
+
+# On a video
+python src/inference/detect.py --source video.mp4 --weights best.pt --save
+
+# On webcam
+python src/inference/detect.py --source 0 --weights best.pt --show
+```
+
+---
+
+## 📊 Training Results
+
+### Dataset Statistics
+
+| Class | Instances | Percentage |
+|-------|-----------|------------|
+| Drone | 42,679 | 53.4% |
+| Bird | 13,014 | 16.3% |
+| Helicopter | 12,423 | 15.5% |
+| Plane | 11,573 | 14.5% |
+| **Total** | **79,689** | **100%** |
+
+### Model Performance
+
+| Epoch | mAP50 | mAP50-95 | Precision | Recall |
+|:-----:|:-----:|:--------:|:---------:|:------:|
+| 1 | 57.6% | 28.4% | 58.6% | 55.9% |
+| 5 | 70.2% | 36.2% | 72.1% | 67.5% |
+| **10** | **73.9%** | **39.6%** | **76.4%** | **72.3%** |
+
+> 📈 Training is ongoing. Final results (Epoch 50) will be updated.
+
+### Training Configuration
+
+- **Model**: YOLOv8m (25.8M parameters)
+- **Image Size**: 640x640
+- **Batch Size**: 16
+- **Optimizer**: SGD (auto)
+- **Environment**: Google Colab (Tesla T4)
+
+---
+
+## 🔬 Methodology
+
+### Phase 1: Data Engineering ✅
+
+1. **Data Collection**: Aggregated 11 public thermal datasets from Roboflow
+2. **Data Cleaning**: Developed `clean_label.py` to standardize labels
+   - Unified variations: 'UAV', 'Drone', 'uav' → 'drone'
+   - Removed duplicates and invalid annotations
+3. **Data Augmentation**: Applied 3x augmentation via Roboflow
+   - Blur, Noise, Brightness adjustments
+   - Resulting in 80,000+ training images
+
+### Phase 2: Model Training 🔄
+
+- Training YOLOv8m with checkpointing to Google Drive
+- Using `seed=0` and `deterministic=True` for reproducibility
+- Currently at Epoch 10 with 73.9% mAP50
+
+### Phase 3: Tracking & Optimization 📋
+
+- [ ] ByteTrack integration for multi-object tracking
+- [ ] Velocity estimation (pixels/second)
+- [ ] ONNX export for edge deployment
+- [ ] TensorRT optimization for Jetson
+
+---
+
+## 🛠️ Tech Stack
+
+| Category | Technology |
+|----------|------------|
+| **Deep Learning** | PyTorch, YOLOv8 (Ultralytics) |
+| **Data Management** | Roboflow, OpenCV, NumPy |
+| **Training** | Google Colab (Tesla T4 GPU) |
+| **Visualization** | Matplotlib, Seaborn |
+| **Version Control** | Git, GitHub |
+
+---
+
+## 📚 Documentation
+
+- [Project Overview](docs/PROJECT_OVERVIEW.md)
+- [Data Engineering Process](docs/DATA_ENGINEERING.md)
+- [Model Training Details](docs/MODEL_TRAINING.md)
+- [Future Work & Roadmap](docs/FUTURE_WORK.md)
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+---
+
+## 📧 Contact
+
+**Mehmet Demir** - [@mehmetd7mir](https://github.com/mehmetd7mir)
+
+Project Link: [https://github.com/mehmetd7mir/ThermalTracking](https://github.com/mehmetd7mir/ThermalTracking)
+
+---
+
+<p align="center">
+  <b>Built with ❤️ for Defense & Aerospace Applications</b>
+</p>
