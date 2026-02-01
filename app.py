@@ -30,7 +30,7 @@ try:
     GRADIO_AVAILABLE = True
 except ImportError:
     GRADIO_AVAILABLE = False
-    print("⚠️ Gradio not found. Install with: pip install gradio")
+    print("[WARNING] Gradio not found. Install with: pip install gradio")
 
 try:
     from ultralytics import YOLO
@@ -46,16 +46,16 @@ _model_path = None
 
 
 def load_model(weights: str = "best.pt"):
-    """Model'i lazy load et."""
+    """Load model only when needed (lazy loading)."""
     global _model, _model_path
     
     if _model is None or _model_path != weights:
         if Path(weights).exists():
             _model = YOLO(weights)
             _model_path = weights
-            print(f"✅ Model yüklendi: {weights}")
+            print(f"[OK] Model loaded: {weights}")
         else:
-            print(f"⚠️ Model bulunamadı: {weights}")
+            print(f"[WARNING] Model not found: {weights}")
             _model = YOLO("yolov8n.pt")  # Fallback to nano
             _model_path = "yolov8n.pt"
     
@@ -86,7 +86,7 @@ def process_image(
     # Annotate
     annotated = results[0].plot()
     
-    # İstatistikler
+    # statistics for the detections
     stats = {
         "total_detections": 0,
         "classes": {},
@@ -107,7 +107,7 @@ def process_image(
             stats["classes"][cls_name] = stats["classes"].get(cls_name, 0) + 1
             stats["confidences"].append(conf)
             
-            # Basit threat level
+            # simple threat level calculation
             threat_score = threat_scores.get(cls_name, 1)
             if threat_score >= 3:
                 stats["threat_levels"]["high"] += 1
@@ -126,7 +126,7 @@ def process_video(
     max_frames: int = 300  # Limit for demo
 ) -> Tuple[str, Dict[str, Any]]:
     """
-    Video'yu işle.
+    Process video file frame by frame.
     
     Args:
         video_path: Input video path
@@ -142,9 +142,9 @@ def process_video(
     cap = cv2.VideoCapture(video_path)
     
     if not cap.isOpened():
-        return None, {"error": "Video açılamadı"}
+        return None, {"error": "Could not open video"}
     
-    # Video özellikleri
+    # get video properties
     fps = cap.get(cv2.CAP_PROP_FPS)
     width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
@@ -155,7 +155,7 @@ def process_video(
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
     writer = cv2.VideoWriter(output_path, fourcc, fps, (width, height))
     
-    # İstatistikler
+    # counters for statistics
     total_detections = 0
     class_counts = {}
     frame_count = 0
@@ -198,13 +198,13 @@ def process_video(
 
 
 def create_stats_html(stats: Dict[str, Any]) -> str:
-    """İstatistikleri HTML olarak formatla."""
+    """Format statistics as HTML for display."""
     if "error" in stats:
-        return f"<div style='color: red;'>❌ {stats['error']}</div>"
+        return f"<div style='color: red;'>[ERROR] {stats['error']}</div>"
     
     html = """
     <div style='font-family: Arial; padding: 10px;'>
-        <h3>📊 İstatistikler</h3>
+        <h3>Statistics</h3>
         <table style='width: 100%; border-collapse: collapse;'>
     """
     
@@ -212,7 +212,7 @@ def create_stats_html(stats: Dict[str, Any]) -> str:
         if key == "classes" or key == "class_distribution":
             value_str = ", ".join([f"{k}: {v}" for k, v in value.items()])
         elif key == "threat_levels":
-            value_str = f"🔴 High: {value['high']}, 🟡 Medium: {value['medium']}, 🟢 Low: {value['low']}"
+            value_str = f"High: {value['high']}, Medium: {value['medium']}, Low: {value['low']}"
         elif isinstance(value, float):
             value_str = f"{value:.2f}"
         else:
@@ -232,7 +232,7 @@ def create_stats_html(stats: Dict[str, Any]) -> str:
 def image_interface(image, confidence):
     """Gradio image interface handler."""
     if image is None:
-        return None, "<p>Lütfen bir görüntü yükleyin</p>"
+        return None, "<p>Please upload an image</p>"
     
     annotated, stats = process_image(image, confidence)
     stats_html = create_stats_html(stats)
@@ -243,7 +243,7 @@ def image_interface(image, confidence):
 def video_interface(video, confidence):
     """Gradio video interface handler."""
     if video is None:
-        return None, "<p>Lütfen bir video yükleyin</p>"
+        return None, "<p>Please upload a video</p>"
     
     output_path, stats = process_video(video, confidence)
     stats_html = create_stats_html(stats)
@@ -252,10 +252,10 @@ def video_interface(video, confidence):
 
 
 def create_demo() -> gr.Blocks:
-    """Gradio demo oluştur."""
+    """Create the Gradio demo interface."""
     
     with gr.Blocks(
-        title="🔥 ThermalTracking",
+        title="ThermalTracking",
         theme=gr.themes.Soft(),
         css="""
         .gradio-container { max-width: 1200px; margin: auto; }
@@ -264,30 +264,30 @@ def create_demo() -> gr.Blocks:
     ) as demo:
         
         gr.Markdown("""
-        # 🔥 ThermalTracking
+        # ThermalTracking
         
         **YOLOv8-based Detection of Aerial Targets in Thermal Imagery**
         
-        Thermal görüntülerde drone, uçak, helikopter ve kuş tespiti yapın.
+        Detect drones, planes, helicopters and birds in thermal images.
         
         ---
         """)
         
         with gr.Tabs():
             # Image Tab
-            with gr.TabItem("🖼️ Görüntü"):
+            with gr.TabItem("Image"):
                 with gr.Row():
                     with gr.Column():
-                        img_input = gr.Image(label="Thermal Görüntü Yükle", type="numpy")
+                        img_input = gr.Image(label="Upload Thermal Image", type="numpy")
                         img_confidence = gr.Slider(
                             minimum=0.1, maximum=0.9, value=0.25, step=0.05,
                             label="Confidence Threshold"
                         )
-                        img_btn = gr.Button("🔍 Tespit Et", variant="primary")
+                        img_btn = gr.Button("Detect", variant="primary")
                     
                     with gr.Column():
-                        img_output = gr.Image(label="Sonuç")
-                        img_stats = gr.HTML(label="İstatistikler")
+                        img_output = gr.Image(label="Result")
+                        img_stats = gr.HTML(label="Statistics")
                 
                 img_btn.click(
                     fn=image_interface,
@@ -296,19 +296,19 @@ def create_demo() -> gr.Blocks:
                 )
             
             # Video Tab
-            with gr.TabItem("🎬 Video"):
+            with gr.TabItem("Video"):
                 with gr.Row():
                     with gr.Column():
-                        vid_input = gr.Video(label="Thermal Video Yükle")
+                        vid_input = gr.Video(label="Upload Thermal Video")
                         vid_confidence = gr.Slider(
                             minimum=0.1, maximum=0.9, value=0.25, step=0.05,
                             label="Confidence Threshold"
                         )
-                        vid_btn = gr.Button("🔍 İşle", variant="primary")
+                        vid_btn = gr.Button("Process", variant="primary")
                     
                     with gr.Column():
-                        vid_output = gr.Video(label="Sonuç")
-                        vid_stats = gr.HTML(label="İstatistikler")
+                        vid_output = gr.Video(label="Result")
+                        vid_stats = gr.HTML(label="Statistics")
                 
                 vid_btn.click(
                     fn=video_interface,
@@ -317,29 +317,29 @@ def create_demo() -> gr.Blocks:
                 )
             
             # About Tab
-            with gr.TabItem("ℹ️ Hakkında"):
+            with gr.TabItem("About"):
                 gr.Markdown("""
-                ## Proje Hakkında
+                ## About This Project
                 
-                **ThermalTracking**, thermal (kızılötesi) görüntülerde hava araçlarını
-                tespit etmek için geliştirilmiş bir yapay zeka sistemidir.
+                **ThermalTracking** is an AI system for detecting aerial vehicles
+                in thermal (infrared) imagery.
                 
-                ### Tespit Edilen Sınıflar
+                ### Detected Classes
                 
-                | Sınıf | Açıklama | Tehdit |
+                | Class | Description | Threat |
                 |-------|----------|--------|
-                | 🛸 Drone | İnsansız hava aracı | 🔴 Yüksek |
-                | 🚁 Helicopter | Helikopter | 🟡 Orta |
-                | ✈️ Plane | Uçak | 🟡 Orta |
-                | 🐦 Bird | Kuş | 🟢 Düşük |
+                | Drone | Unmanned aerial vehicle | High |
+                | Helicopter | Rotary wing aircraft | Medium |
+                | Plane | Fixed wing aircraft | Medium |
+                | Bird | Flying bird | Low |
                 
-                ### Teknik Detaylar
+                ### Technical Details
                 
                 - **Model**: YOLOv8m (25.8M parameters)
                 - **Dataset**: 80,000+ augmented thermal images
                 - **mAP50**: 73.9%
                 
-                ### Geliştirici
+                ### Developer
                 
                 **Mehmet Demir** - [GitHub](https://github.com/mehmetd7mir)
                 """)
@@ -347,7 +347,7 @@ def create_demo() -> gr.Blocks:
         gr.Markdown("""
         ---
         <p style='text-align: center; color: gray;'>
-            Built with ❤️ for Defense & Aerospace Applications
+            Built for Defense & Aerospace Applications
         </p>
         """)
     
@@ -357,7 +357,7 @@ def create_demo() -> gr.Blocks:
 # Main
 if __name__ == "__main__":
     if not GRADIO_AVAILABLE:
-        print("❌ Gradio yüklü değil!")
+        print("[ERROR] Gradio not installed!")
         print("   pip install gradio")
         exit(1)
     
@@ -365,6 +365,6 @@ if __name__ == "__main__":
     demo.launch(
         server_name="0.0.0.0",
         server_port=7860,
-        share=False,  # Public link için True yap
+        share=False,  # set True for public link
         show_error=True
     )
